@@ -1,0 +1,53 @@
+# Environment files
+.env
+*.env
+backend/.env
+frontend/.env
+frontend/.env.local
+
+# Sensitive Keys and Secrets
+service-account.json
+backend/service-account.json
+*.json_keys
+*.pem
+
+# Python caching and Virtual Environments
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.cache
+nosetests.xml
+coverage.xml
+*,cover
+.hypothesis/
+
+# Node.js dependencies and production builds
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+dist/
+build/
+
+# IDE / Editor logs and configurations
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# Agent runtime logs and backups
+.agents/
+.system_generated/
+.gemini/
