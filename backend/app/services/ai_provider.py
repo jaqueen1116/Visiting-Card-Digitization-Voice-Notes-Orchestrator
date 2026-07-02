@@ -195,9 +195,9 @@ class OpenAIVisionProvider(AIPublicService):
             "4. Respond with ONLY the raw JSON object. Do not explain or wrap in markdown blocks."
         )
 
-        logger.info("Sending image to OpenAI GPT-4.1 API...")
+        logger.info("Sending image to OpenAI GPT-4o API...")
         completion = client.chat.completions.create(
-            model="gpt-4.1",
+            model="gpt-4o",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {
