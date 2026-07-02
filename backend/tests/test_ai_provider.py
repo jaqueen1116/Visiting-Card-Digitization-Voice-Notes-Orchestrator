@@ -1,7 +1,7 @@
 import os
 import unittest
 import asyncio
-from app.services.ai_provider import GeminiProvider, GroqPaddleOCRProvider, get_ai_service
+from app.services.ai_provider import GeminiProvider, OpenAIVisionProvider, get_ai_service
 from app.models.contact import ContactCard
 
 class TestAIProvider(unittest.TestCase):
@@ -18,18 +18,18 @@ class TestAIProvider(unittest.TestCase):
         service = get_ai_service()
         self.assertIsNotNone(service)
 
-    def test_groq_fallback_on_failure(self):
+    def test_openai_fallback_on_failure(self):
         """
-        Verify that GroqPaddleOCRProvider automatically falls back to Gemini on Groq failures.
+        Verify that OpenAIVisionProvider automatically falls back to Gemini on OpenAI failures.
         """
         gemini_prov = GeminiProvider()
-        groq_prov = GroqPaddleOCRProvider(gemini_fallback=gemini_prov)
+        openai_prov = OpenAIVisionProvider(gemini_fallback=gemini_prov)
         
-        # Mock _extract_sync of groq_prov to simulate a Groq API rate limit or OCR exception
+        # Mock _extract_sync of openai_prov to simulate an OpenAI API exception
         def mock_extract_sync(image_content, mime_type):
-            raise ConnectionError("Simulated Groq API rate limit or connection error")
+            raise ConnectionError("Simulated OpenAI API error")
             
-        groq_prov._extract_sync = mock_extract_sync
+        openai_prov._extract_sync = mock_extract_sync
         
         if not os.path.exists(self.sample_card_path):
             self.skipTest("Sample business card image not found, skipping fallback execution test")
@@ -40,7 +40,7 @@ class TestAIProvider(unittest.TestCase):
         loop = asyncio.get_event_loop()
         # Verify that calling extract_contact_card succeeds by falling back to Gemini
         try:
-            contact = loop.run_until_complete(groq_prov.extract_contact_card(img_bytes, "image/jpeg"))
+            contact = loop.run_until_complete(openai_prov.extract_contact_card(img_bytes, "image/jpeg"))
             print(f"Fallback vision extraction succeeded! Extracted name: {contact.name}")
             self.assertIsInstance(contact, ContactCard)
             self.assertIsNotNone(contact.name)

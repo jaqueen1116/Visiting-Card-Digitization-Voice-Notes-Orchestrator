@@ -1,14 +1,14 @@
 import json
 import asyncio
+import base64
 from abc import ABC, abstractmethod
 from typing import List, Any, Optional
-import numpy as np
-import cv2
 
 from google import genai
 from google.genai import types
 from google.genai.errors import APIError
 from groq import Groq
+from openai import OpenAI
 
 from app.config import settings, logger
 from app.models.contact import ContactCard, ExtractedContact
@@ -31,7 +31,7 @@ class AIPublicService(ABC):
 # Cached singletons for clients and models
 _gemini_client = None
 _groq_client = None
-_paddle_ocr = None
+_openai_client = None
 
 def get_gemini_client() -> genai.Client:
     global _gemini_client
@@ -51,15 +51,14 @@ def get_groq_client() -> Groq:
         _groq_client = Groq(api_key=settings.GROQ_API_KEY)
     return _groq_client
 
-def get_paddle_ocr():
-    global _paddle_ocr
-    if _paddle_ocr is None:
-        logger.info("Initializing PaddleOCR singleton instance...")
-        from paddleocr import PaddleOCR
-        # Initialize PaddleOCR with show_log=False to prevent terminal spam
-        _paddle_ocr = PaddleOCR(use_angle_cls=True, lang='en', show_log=False)
-        logger.info("PaddleOCR singleton instance initialized successfully.")
-    return _paddle_ocr
+def get_openai_client() -> OpenAI:
+    global _openai_client
+    if _openai_client is None:
+        if not settings.OPENAI_API_KEY:
+            logger.error("OPENAI_API_KEY is not set or empty.")
+            raise ValueError("OpenAI API key is not configured in settings.")
+        _openai_client = OpenAI(api_key=settings.OPENAI_API_KEY)
+    return _openai_client
 
 
 class GeminiProvider(AIPublicService):
@@ -152,7 +151,7 @@ class GeminiProvider(AIPublicService):
             raise e
 
 
-class GroqPaddleOCRProvider(AIPublicService):
+class OpenAIVisionProvider(AIPublicService):
     def __init__(self, gemini_fallback: GeminiProvider):
         self.gemini_fallback = gemini_fallback
 
@@ -163,9 +162,9 @@ class GroqPaddleOCRProvider(AIPublicService):
             # Propagate validation errors (e.g. card invalid, name missing) directly without falling back
             raise ve
         except Exception as e:
-            logger.warning(f"Groq/PaddleOCR extraction failed: {str(e)}. Automatically falling back to GeminiProvider...")
+            logger.warning(f"OpenAI Vision extraction failed: {str(e)}. Automatically falling back to GeminiProvider...")
             try:
-                return self.gemini_fallback.extract_contact_card(image_content, mime_type)
+                return await self.gemini_fallback.extract_contact_card(image_content, mime_type)
             except Exception as fe:
                 logger.error(f"Gemini fallback vision extraction also failed: {str(fe)}")
                 raise fe
@@ -175,34 +174,13 @@ class GroqPaddleOCRProvider(AIPublicService):
             logger.error("Empty image bytes provided.")
             raise ValueError("Invalid image: File payload is empty.")
 
-        # 1. Run local PaddleOCR extraction
-        nparr = np.frombuffer(image_content, np.uint8)
-        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-        if img is None:
-            raise ValueError("Invalid image file format or corrupted bytes.")
-
-        logger.info("Executing local PaddleOCR text detection...")
-        ocr = get_paddle_ocr()
-        result = ocr.ocr(img, cls=True)
-
-        lines = []
-        if result and result[0]:
-            for line in result[0]:
-                text = line[1][0]
-                lines.append(text)
+        client = get_openai_client()
         
-        ocr_text = "\n".join(lines).strip()
-        if not ocr_text:
-            raise ValueError("The uploaded image doesn't appear to contain any readable text. Please upload a clear card image.")
-
-        logger.info(f"PaddleOCR detected text lines:\n{ocr_text}")
-
-        # 2. Call Groq for structured JSON extraction
-        client = get_groq_client()
-        model_name = settings.GROQ_MODEL or "llama-3.3-70b-versatile"
+        # Convert image to base64
+        base64_image = base64.b64encode(image_content).decode("utf-8")
         
         system_prompt = (
-            "You are an expert AI business card parser. Extract contact details from the raw OCR text "
+            "You are an expert AI business card parser. Extract contact details from the provided image "
             "and return a JSON object matching this schema exactly:\n"
             "{\n"
             "  \"name\": \"Full Name (or null if not found)\",\n"
@@ -217,19 +195,30 @@ class GroqPaddleOCRProvider(AIPublicService):
             "4. Respond with ONLY the raw JSON object. Do not explain or wrap in markdown blocks."
         )
 
-        logger.info(f"Sending OCR text to Groq model {model_name} for structured parsing...")
+        logger.info("Sending image to OpenAI GPT-4.1 Vision API...")
         completion = client.chat.completions.create(
+            model="gpt-4.1-vision",
             messages=[
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": f"OCR Text:\n{ocr_text}"}
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": "Extract contact information from this business card."},
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:{mime_type};base64,{base64_image}"
+                            }
+                        }
+                    ]
+                }
             ],
-            model=model_name,
             response_format={"type": "json_object"},
             temperature=0.1
         )
 
         raw_json = completion.choices[0].message.content.strip()
-        logger.info(f"Raw Groq JSON response: {raw_json}")
+        logger.info(f"Raw OpenAI Vision JSON response: {raw_json}")
         
         data = json.loads(raw_json)
         name_val = data.get("name")
@@ -255,6 +244,7 @@ class GroqPaddleOCRProvider(AIPublicService):
                 raise fe
 
     def _chat_sync(self, prompt: str, history: List[Any]) -> str:
+        # Keep Groq Llama 3.3 for chat
         client = get_groq_client()
         model_name = settings.GROQ_MODEL or "llama-3.3-70b-versatile"
         
@@ -283,18 +273,18 @@ class GroqPaddleOCRProvider(AIPublicService):
 
 # Cached Provider instances
 _gemini_provider = None
-_groq_provider = None
+_openai_provider = None
 
 def get_ai_service() -> AIPublicService:
-    global _gemini_provider, _groq_provider
+    global _gemini_provider, _openai_provider
     
     if _gemini_provider is None:
         _gemini_provider = GeminiProvider()
         
     provider_type = settings.AI_PROVIDER.lower().strip()
-    if provider_type == "groq":
-        if _groq_provider is None:
-            _groq_provider = GroqPaddleOCRProvider(gemini_fallback=_gemini_provider)
-        return _groq_provider
+    if provider_type == "openai":
+        if _openai_provider is None:
+            _openai_provider = OpenAIVisionProvider(gemini_fallback=_gemini_provider)
+        return _openai_provider
         
     return _gemini_provider

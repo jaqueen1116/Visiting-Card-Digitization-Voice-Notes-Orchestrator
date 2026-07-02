@@ -26,8 +26,9 @@ class Settings(BaseSettings):
     # Gemini API Configuration
     GEMINI_API_KEY: str = Field(default="")
 
-    # AI Pipeline Provider Configuration (gemini, groq)
+    # AI Pipeline Provider Configuration (gemini, groq, openai)
     AI_PROVIDER: str = Field(default="gemini")
+    OPENAI_API_KEY: str = Field(default="")
     GROQ_API_KEY: str = Field(default="")
     GROQ_MODEL: str = Field(default="llama-3.3-70b-versatile")
 
