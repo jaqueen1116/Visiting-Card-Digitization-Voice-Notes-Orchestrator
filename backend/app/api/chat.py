@@ -99,15 +99,15 @@ async def run_agent(
     )
     await mongo.save_chat_message(session_id, user_msg)
 
-    # 7. Commit agent reply event to MongoDB
+    status = final_state.get("status")
     agent_msg = ChatMessage(
         sender="assistant",
         text=agent_reply.content,
         type="text",
         metadata={
-            "status": final_state.get("status"),
-            "last_contact_uuid": final_state.get("last_contact_uuid"),
-            "extracted_contact": final_state.get("extracted_contact")
+            "status": status,
+            "last_contact_uuid": final_state.get("last_contact_uuid") if status != "failed" else None,
+            "extracted_contact": final_state.get("extracted_contact") if status != "failed" else None
         }
     )
     await mongo.save_chat_message(session_id, agent_msg)

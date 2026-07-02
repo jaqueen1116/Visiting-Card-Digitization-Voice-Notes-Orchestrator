@@ -185,8 +185,10 @@ async def manage_sheet_node(state: AgentState) -> dict:
 # Node 5: WhatsApp Notification dispatcher
 async def whatsapp_notify_node(state: AgentState) -> dict:
     logger.info("Executing whatsapp_notify_node...")
+    status = state.get("status")
     extracted = state.get("extracted_contact")
-    if not extracted:
+    if status == "failed" or not extracted:
+        logger.info("Skipping WhatsApp dispatch due to failed Google Sheets write status.")
         return {"session_id": state["session_id"]}
     try:
         contact = ContactCard(**extracted)

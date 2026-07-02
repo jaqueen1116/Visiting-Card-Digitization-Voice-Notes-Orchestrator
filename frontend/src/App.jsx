@@ -231,7 +231,7 @@ export default function App() {
   };
 
   // Scan message logs history dynamically to resolve the active contact metadata
-  const activeContact = [...messages].reverse().find(msg => msg.metadata?.extracted_contact)?.metadata?.extracted_contact;
+  const activeContact = [...messages].reverse().find(msg => msg.metadata?.extracted_contact && msg.metadata?.status !== "failed")?.metadata?.extracted_contact;
 
   if (view === "home") {
     return <Homepage onLaunchApp={() => setView("app")} />;

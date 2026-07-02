@@ -388,7 +388,7 @@ export default function ChatWindow({
         ) : (
           messages.map((msg, index) => {
             const isUser = msg.sender === "user";
-            const extractedContact = msg.metadata?.extracted_contact;
+            const extractedContact = msg.metadata?.status !== "failed" ? msg.metadata?.extracted_contact : null;
             
             return (
               <div key={index} className={`message-row ${isUser ? "user" : "assistant"}`}>
