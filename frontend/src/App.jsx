@@ -3,9 +3,11 @@ import SessionSidebar from "./components/SessionSidebar";
 import ChatWindow from "./components/ChatWindow";
 import Uploader from "./components/Uploader";
 import RightPanel from "./components/RightPanel";
+import Homepage from "./components/Homepage";
 import { API_BASE_URL } from "./config";
 
 export default function App() {
+  const [view, setView] = useState("home");
   const [sessions, setSessions] = useState([]);
   const [activeSessionId, setActiveSessionId] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -192,6 +194,10 @@ export default function App() {
   // Scan message logs history dynamically to resolve the active contact metadata
   const activeContact = [...messages].reverse().find(msg => msg.metadata?.extracted_contact)?.metadata?.extracted_contact;
 
+  if (view === "home") {
+    return <Homepage onLaunchApp={() => setView("app")} />;
+  }
+
   return (
     <div className="app-container">
       {/* Background ambient animation blobs */}
@@ -209,6 +215,7 @@ export default function App() {
         onCreateSession={handleCreateSession}
         onDeleteSession={handleDeleteSession}
         loadingSessions={loadingSessions}
+        onBackToHome={() => setView("home")}
       />
 
       {/* Main chat window workspace */}

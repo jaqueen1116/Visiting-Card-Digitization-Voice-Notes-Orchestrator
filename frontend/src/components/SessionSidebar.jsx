@@ -7,12 +7,13 @@ export default function SessionSidebar({
   onSelectSession, 
   onCreateSession, 
   onDeleteSession,
-  loadingSessions
+  loadingSessions,
+  onBackToHome
 }) {
   return (
     <aside className="sidebar glass-panel">
       <div className="sidebar-header">
-        <h1 className="sidebar-logo">
+        <h1 className="sidebar-logo" onClick={onBackToHome} style={{ cursor: "pointer" }} title="Go back to Homepage">
           <FolderSync size={24} />
           <span>Krid Orchestrator</span>
         </h1>
