@@ -225,6 +225,7 @@ export default function App() {
         onSendMessage={handleSendMessage}
         onOpenUploader={() => setUploaderOpen(true)}
         onUploadFile={handleUploadFile}
+        onBackToHome={() => setView("home")}
         sending={sending}
         activeSessionId={activeSessionId}
       />

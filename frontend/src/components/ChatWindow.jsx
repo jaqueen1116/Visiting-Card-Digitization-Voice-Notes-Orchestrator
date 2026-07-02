@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Send, Paperclip, SendHorizontal, HelpCircle, FileSpreadsheet, Sparkles, User, Building, Phone, Mail, FileText, Mic, Square } from "lucide-react";
+import { Send, Paperclip, SendHorizontal, HelpCircle, FileSpreadsheet, Sparkles, User, Building, Phone, Mail, FileText, Mic, Square, Home } from "lucide-react";
 
 const parseMarkdown = (text) => {
   if (!text) return "";
@@ -38,6 +38,7 @@ export default function ChatWindow({
   onSendMessage, 
   onOpenUploader, 
   onUploadFile,
+  onBackToHome,
   sending, 
   activeSessionId 
 }) {
@@ -208,9 +209,35 @@ export default function ChatWindow({
             <span style={{ fontSize: "0.75rem", color: "var(--text-dark)" }}>ID: {activeSessionId}</span>
           </div>
         </div>
-        <div className="status-badge">
-          <div className="status-dot status-online" />
-          <span>Connected</span>
+        
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <button 
+            type="button"
+            className="icon-btn home-btn"
+            onClick={onBackToHome}
+            title="Go back to Homepage"
+            style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              gap: "6px", 
+              fontSize: "0.82rem", 
+              padding: "6px 12px", 
+              borderRadius: "10px", 
+              border: "1px solid var(--border-color)", 
+              background: "#FFFFFF",
+              fontWeight: "600",
+              color: "var(--text-main)",
+              cursor: "pointer"
+            }}
+          >
+            <Home size={14} />
+            <span>Home</span>
+          </button>
+          
+          <div className="status-badge">
+            <div className="status-dot status-online" />
+            <span>Connected</span>
+          </div>
         </div>
       </header>
 
