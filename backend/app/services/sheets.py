@@ -246,10 +246,14 @@ class GoogleSheetsService:
                 service = self._get_service()
                 sheet = service.spreadsheets()
                 
-                logger.info(f"Google Sheets append attempt {attempt}/{MAX_RETRIES} for UUID: {contact.uuid}")
-                sheet.values().append(
+                # Retrieve all rows to calculate the exact next row index deterministically
+                rows = self._get_all_rows()
+                next_row = len(rows) + 1
+                
+                logger.info(f"Google Sheets write attempt {attempt}/{MAX_RETRIES} to row {next_row} for UUID: {contact.uuid}")
+                sheet.values().update(
                     spreadsheetId=self.spreadsheet_id,
-                    range="Sheet1!A:H",
+                    range=f"Sheet1!A{next_row}",
                     valueInputOption="RAW",
                     body={"values": [row_data]}
                 ).execute()
