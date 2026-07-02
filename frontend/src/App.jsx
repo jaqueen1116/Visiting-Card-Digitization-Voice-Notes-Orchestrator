@@ -199,7 +199,7 @@ export default function App() {
   }
 
   return (
-    <div className={`app-container ${activeContact ? "has-right-panel" : "no-right-panel"}`}>
+    <>
       {/* Background ambient animation blobs */}
       <div className="bg-blobs">
         <div className="blob blob-1" />
@@ -207,16 +207,17 @@ export default function App() {
         <div className="blob blob-3" />
       </div>
 
-      {/* Sessions sidebar */}
-      <SessionSidebar 
-        sessions={sessions}
-        activeSessionId={activeSessionId}
-        onSelectSession={handleSelectSession}
-        onCreateSession={handleCreateSession}
-        onDeleteSession={handleDeleteSession}
-        loadingSessions={loadingSessions}
-        onBackToHome={() => setView("home")}
-      />
+      <div className={`app-container ${activeContact ? "has-right-panel" : "no-right-panel"}`}>
+        {/* Sessions sidebar */}
+        <SessionSidebar 
+          sessions={sessions}
+          activeSessionId={activeSessionId}
+          onSelectSession={handleSelectSession}
+          onCreateSession={handleCreateSession}
+          onDeleteSession={handleDeleteSession}
+          loadingSessions={loadingSessions}
+          onBackToHome={() => setView("home")}
+        />
 
       {/* Main chat window workspace */}
       <ChatWindow 
@@ -245,5 +246,6 @@ export default function App() {
         />
       )}
     </div>
+    </>
   );
 }
