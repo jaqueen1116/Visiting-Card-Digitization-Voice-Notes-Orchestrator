@@ -966,7 +966,7 @@ h1, h2, h3, h4, .font-display {
 
 /* Homepage Landing View styling */
 .homepage-container {
-  min-height: 100vh;
+  height: 100vh;
   width: 100vw;
   background-color: var(--bg-primary);
   display: flex;
