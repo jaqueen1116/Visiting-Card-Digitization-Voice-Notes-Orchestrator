@@ -38,7 +38,8 @@ class WhatsAppService:
         if not self.is_configured:
             logger.info("=== [MOCK WHATSAPP NOTIFICATION DISPATCH] ===")
             logger.info(f"To Manager Phone: {settings.WHATSAPP_MANAGER_PHONE or 'NOT_CONFIGURED'}")
-            logger.info(f"Message Body:\n{message_body}")
+            safe_body = message_body.encode('ascii', 'replace').decode('ascii')
+            logger.info(f"Message Body:\n{safe_body}")
             logger.info("=============================================")
             return True
 

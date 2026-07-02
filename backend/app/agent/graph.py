@@ -26,7 +26,7 @@ async def extract_card_node(state: AgentState) -> dict:
         )
         return {
             "extracted_contact": card.model_dump(),
-            "status": "extracted"
+            "status": "needs_confirmation"
         }
     except Exception as e:
         logger.error(f"Vision extraction failed in graph node: {str(e)}")
@@ -214,6 +214,17 @@ async def chat_response_node(state: AgentState) -> dict:
     if status in ["inserted", "duplicate", "updated"]:
         return {"session_id": state["session_id"]}
         
+    if status == "needs_confirmation":
+        return {
+            "messages": [AIMessage(content="The contact details have been extracted successfully. Would you like to save them to Google Sheets and continue?")]
+        }
+        
+    if state.get("text_input") == "CANCEL_SAVE_CARD":
+        return {
+            "status": "cancelled",
+            "messages": [AIMessage(content="Operation cancelled. No data was saved.")]
+        }
+        
     # General text prompt conversational response
     text_input = state.get("text_input")
     if text_input:
@@ -241,10 +252,14 @@ workflow.set_entry_point("process_input")
 # Conditional Router: Image vs Audio vs Text
 def route_input(state: AgentState) -> str:
     file_type = state.get("file_type")
+    text_input = state.get("text_input")
+    
     if file_type == "image":
         return "extract_card"
     elif file_type == "audio":
         return "transcribe_audio"
+    elif text_input == "CONFIRM_SAVE_CARD":
+        return "manage_sheet"
     else:
         return "chat_response"
 
@@ -254,12 +269,13 @@ workflow.add_conditional_edges(
     {
         "extract_card": "extract_card",
         "transcribe_audio": "transcribe_audio",
+        "manage_sheet": "manage_sheet",
         "chat_response": "chat_response"
     }
 )
 
-# Connect processing nodes to Sheets Manager
-workflow.add_edge("extract_card", "manage_sheet")
+# Connect processing nodes to destination
+workflow.add_edge("extract_card", "chat_response")
 workflow.add_edge("transcribe_audio", "manage_sheet")
 
 # Conditional Router: Alert dispatcher on new insertions

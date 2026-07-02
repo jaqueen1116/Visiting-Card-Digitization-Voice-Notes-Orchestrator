@@ -138,7 +138,10 @@ export default function ChatWindow({
     setText("");
   };
 
-  const renderContactCard = (contact) => {
+  const renderContactCard = (contact, msg) => {
+    if (!contact) return null;
+    const isNeedsConfirmation = msg?.metadata?.status === "needs_confirmation";
+
     if (!contact) return null;
     return (
       <div className="contact-card-embed">
@@ -171,6 +174,47 @@ export default function ChatWindow({
             </div>
           )}
         </div>
+        
+        {isNeedsConfirmation && (
+          <div style={{ display: 'flex', gap: '10px', marginTop: '16px', justifyContent: 'center' }}>
+            <button
+              type="button"
+              onClick={() => onSendMessage("CONFIRM_SAVE_CARD")}
+              style={{
+                padding: '8px 16px',
+                borderRadius: '8px',
+                backgroundColor: 'var(--accent-purple)',
+                color: 'white',
+                border: 'none',
+                fontWeight: '600',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
+              ✅ Confirm & Save
+            </button>
+            <button
+              type="button"
+              onClick={() => onSendMessage("CANCEL_SAVE_CARD")}
+              style={{
+                padding: '8px 16px',
+                borderRadius: '8px',
+                backgroundColor: '#f3f4f6',
+                color: '#ef4444',
+                border: '1px solid #ef4444',
+                fontWeight: '600',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
+              ❌ Cancel
+            </button>
+          </div>
+        )}
       </div>
     );
   };
@@ -399,7 +443,7 @@ export default function ChatWindow({
                   </div>
                   
                   {/* Render structured contact card if present */}
-                  {extractedContact && renderContactCard(extractedContact)}
+                  {extractedContact && renderContactCard(extractedContact, msg)}
                   
                   <span className="message-meta">
                     {isUser ? "You" : "Assistant"} • {new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}

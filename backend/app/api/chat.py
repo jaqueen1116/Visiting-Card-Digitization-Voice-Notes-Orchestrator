@@ -49,7 +49,15 @@ async def run_agent(
     if current_user_text:
         langchain_history.append(HumanMessage(content=current_user_text))
 
-    # 3. Assemble inputs dict matching AgentState schema
+    # 3. Handle Human-in-the-Loop Confirmation State Restoration
+    restored_contact = None
+    if text_input in ["CONFIRM_SAVE_CARD", "CANCEL_SAVE_CARD"]:
+        for msg in reversed(db_history):
+            if msg.sender == "assistant" and msg.metadata and msg.metadata.get("status") == "needs_confirmation":
+                restored_contact = msg.metadata.get("extracted_contact")
+                break
+                
+    # 4. Assemble inputs dict matching AgentState schema
     inputs = {
         "messages": langchain_history,
         "session_id": session_id,
@@ -58,13 +66,13 @@ async def run_agent(
         "file_type": file_type,
         "file_mime": file_mime,
         "text_input": text_input,
-        "extracted_contact": None,
+        "extracted_contact": restored_contact,
         "transcription": None,
         "status": None,
         "error_message": None
     }
 
-    # 4. Invoke LangGraph agent pipeline
+    # 5. Invoke LangGraph agent pipeline
     try:
         final_state = await agent_app.ainvoke(inputs)
     except Exception as e:
@@ -91,6 +99,11 @@ async def run_agent(
     elif file_type == "audio":
         user_text = "Uploaded voice note audio."
         
+    if text_input == "CONFIRM_SAVE_CARD":
+        user_text = "Confirmed save to Google Sheets."
+    elif text_input == "CANCEL_SAVE_CARD":
+        user_text = "Cancelled save operation."
+        
     user_msg = ChatMessage(
         sender="user",
         text=user_text or "Sent attachment file",
@@ -107,7 +120,7 @@ async def run_agent(
         metadata={
             "status": status,
             "last_contact_uuid": final_state.get("last_contact_uuid") if status != "failed" else None,
-            "extracted_contact": final_state.get("extracted_contact") if status != "failed" else None
+            "extracted_contact": final_state.get("extracted_contact") if status not in ["failed", "cancelled"] else None
         }
     )
     await mongo.save_chat_message(session_id, agent_msg)
