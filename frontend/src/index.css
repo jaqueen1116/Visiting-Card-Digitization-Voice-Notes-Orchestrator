@@ -303,10 +303,15 @@ h1, h2, h3, h4, .font-display {
 
 /* Central Chat Area Layout */
 .chat-area {
-  flex: 1;
+  background-color: var(--bg-panel);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  box-shadow: var(--shadow-light);
   display: flex;
   flex-direction: column;
   height: 100%;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .chat-header {
@@ -347,6 +352,7 @@ h1, h2, h3, h4, .font-display {
   flex-direction: column;
   gap: 20px;
   background-color: var(--bg-primary);
+  min-height: 0;
 }
 
 .message-row {
