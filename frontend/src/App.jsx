@@ -277,6 +277,7 @@ export default function App() {
           hasActiveContact={!!activeContact}
           mobileSidebarOpen={mobileSidebarOpen}
           mobileRightPanelOpen={mobileRightPanelOpen}
+          onCreateSession={handleCreateSession}
         />
 
         {/* Right side contact profile panel */}

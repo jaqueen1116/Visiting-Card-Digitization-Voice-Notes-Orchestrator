@@ -45,7 +45,8 @@ export default function ChatWindow({
   onToggleRightPanel,
   hasActiveContact,
   mobileSidebarOpen,
-  mobileRightPanelOpen
+  mobileRightPanelOpen,
+  onCreateSession
 }) {
   const [text, setText] = useState("");
   const messagesEndRef = useRef(null);
@@ -177,7 +178,52 @@ export default function ChatWindow({
   if (!activeSessionId) {
     return (
       <main className="chat-area">
-        <div className="welcome-overlay">
+        <header className="chat-header">
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            {/* Hamburger Menu Toggle for Mobile */}
+            <button 
+              type="button" 
+              className={`icon-btn mobile-menu-btn ${mobileSidebarOpen ? "active" : ""}`}
+              onClick={onToggleSidebar}
+              title="Toggle Sessions List"
+            >
+              <Menu size={20} />
+            </button>
+            
+            <div className="chat-info">
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <span className="font-display" style={{ fontSize: "1rem", fontWeight: "600" }}>Krid Digitizer</span>
+              </div>
+            </div>
+          </div>
+          
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <button 
+              type="button"
+              className="icon-btn home-btn"
+              onClick={onBackToHome}
+              title="Go back to Homepage"
+              style={{ 
+                display: "flex", 
+                alignItems: "center", 
+                gap: "6px", 
+                fontSize: "0.82rem", 
+                padding: "6px 12px", 
+                borderRadius: "10px", 
+                border: "1px solid var(--border-color)", 
+                background: "#FFFFFF",
+                fontWeight: "600",
+                color: "var(--text-main)",
+                cursor: "pointer"
+              }}
+            >
+              <Home size={14} />
+              <span className="home-btn-text">Home</span>
+            </button>
+          </div>
+        </header>
+
+        <div className="welcome-overlay" style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
           <h1 className="welcome-title">Krid Orchestrator</h1>
           <p className="welcome-desc">
             A neat, light-mode orchestrator to digitize business cards, transcribe speech notes, dispatch notifications, and manage contacts seamlessly. Create a new chat session to get started.
@@ -199,6 +245,32 @@ export default function ChatWindow({
               <h3 className="feature-box-title">Google Sheets Sync</h3>
               <p className="feature-box-desc">Parsed cards are automatically written to a spreadsheet. Checks for duplicates.</p>
             </div>
+          </div>
+
+          {/* Primary CTA button to create a new session directly */}
+          <div style={{ display: "flex", justifyContent: "center", marginTop: "32px" }}>
+            <button
+              type="button"
+              className="primary-cta-btn"
+              onClick={onCreateSession}
+              style={{
+                padding: "14px 28px",
+                borderRadius: "12px",
+                backgroundColor: "var(--accent-purple)",
+                color: "#FFFFFF",
+                fontWeight: "600",
+                border: "none",
+                cursor: "pointer",
+                boxShadow: "var(--shadow-light)",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                fontSize: "0.95rem",
+                transition: "all 0.2s"
+              }}
+            >
+              <span>+ Create New Chat</span>
+            </button>
           </div>
         </div>
       </main>
