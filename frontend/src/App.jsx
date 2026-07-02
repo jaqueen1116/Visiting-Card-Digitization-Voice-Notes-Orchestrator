@@ -199,7 +199,7 @@ export default function App() {
   }
 
   return (
-    <div className="app-container">
+    <div className={`app-container ${activeContact ? "has-right-panel" : "no-right-panel"}`}>
       {/* Background ambient animation blobs */}
       <div className="bg-blobs">
         <div className="blob blob-1" />
@@ -229,10 +229,12 @@ export default function App() {
       />
 
       {/* Right side contact profile panel */}
-      <RightPanel 
-        activeContact={activeContact}
-        messages={messages}
-      />
+      {activeContact && (
+        <RightPanel 
+          activeContact={activeContact}
+          messages={messages}
+        />
+      )}
 
       {/* Drag & drop file upload modal */}
       {uploaderOpen && (
