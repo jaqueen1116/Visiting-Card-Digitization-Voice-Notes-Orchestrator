@@ -20,8 +20,8 @@ graph TD
         ProcessNode -->|is Audio| SpeechNode[transcribe_audio_node]
         ProcessNode -->|is Text| ChatNode[chat_response_node]
         
-        VisionNode -->|Gemini Vision| ContactCard[(ContactCard Pydantic)]
-        SpeechNode -->|Gemini Transcript| TextLog[Transcription Text]
+        VisionNode -->|OpenAI GPT-4.1| ContactCard[(ContactCard Pydantic)]
+        SpeechNode -->|Groq Whisper| TextLog[Transcription Text]
         
         ContactCard --> SheetNode[manage_sheet_node]
         TextLog --> SheetNode
@@ -42,8 +42,9 @@ graph TD
 
 ## 2. Features
 
-*   **⚡ AI Visiting Card OCR**: Dynamically extracts names, email addresses, phone numbers, and company labels from card images using Gemini 2.5 Flash, validated by Pydantic.
-*   **🎙️ Voice Note Transcription**: Converts spoken audio notes into written transcripts using Gemini's audio parsing and appends them to the active contact row.
+*   **⚡ AI Visiting Card OCR**: Dynamically extracts names, email addresses, phone numbers, and company labels from card images using OpenAI GPT-4.1 Vision, validated by Pydantic.
+*   **🎙️ Voice Note Transcription**: Converts spoken audio notes into written transcripts using Groq Whisper and appends them to the active contact row.
+*   **🧑‍💻 Human-in-the-Loop Workflow**: Safely pauses execution after OCR extraction, requiring manual user confirmation via the frontend UI before saving any data to Google Sheets or triggering notifications.
 *   **📊 Google Sheets Synchronization**: Automates database entries. Prevents duplication by checking emails and phone numbers before writing.
 *   **🔔 Meta WhatsApp Alerts**: Dispatches formatted messages (name, company, email, phone, UUID) to the manager's phone.
 *   **💾 Decoupled Session Memory**: Persists conversation logs and session trackers in MongoDB. Automatically falls back to **in-memory mock storage** if MongoDB Atlas is disconnected.
@@ -61,7 +62,7 @@ graph TD
 ### Backend
 *   **API Framework**: FastAPI (Uvicorn server)
 *   **Agent framework**: LangGraph, LangChain Core
-*   **Generative AI**: Google GenAI SDK (`gemini-2.5-flash`)
+*   **Generative AI**: OpenAI (`gpt-4.1`), Groq (`llama-3.3-70b-versatile`, `whisper-large-v3`)
 *   **Databases**: MongoDB (async Motor driver) & Google Sheets API
 
 ---
@@ -83,8 +84,8 @@ krid/
 │   │   ├── services/
 │   │   │   ├── sheets.py           # Google sheets sync & row appenders
 │   │   │   ├── whatsapp.py         # Meta Cloud API message client
-│   │   │   ├── vision.py           # Gemini vision card parser
-│   │   │   └── speech.py           # Gemini voice transcriber
+│   │   │   ├── vision.py           # OpenAI vision card parser
+│   │   │   └── speech.py           # Groq voice transcriber
 │   │   ├── agent/
 │   │   │   ├── graph.py            # Compiled LangGraph workflow logic
 │   │   │   └── state.py            # Unified TypedDict Graph state
@@ -129,8 +130,10 @@ Create a `.env` file in the root project directory:
 PORT=8001
 ENVIRONMENT=development
 
-# Gemini API Key
-GEMINI_API_KEY=your-gemini-api-key
+# AI Provider Configuration
+AI_PROVIDER=openai
+OPENAI_API_KEY=your-openai-api-key
+GROQ_API_KEY=your-groq-api-key
 
 # MongoDB Database Configuration
 MONGODB_URI=mongodb+srv://<user>:<password>@cluster.mongodb.net/krid_db
