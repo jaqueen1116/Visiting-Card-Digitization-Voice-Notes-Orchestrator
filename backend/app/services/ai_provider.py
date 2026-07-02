@@ -159,10 +159,13 @@ class GroqPaddleOCRProvider(AIPublicService):
     async def extract_contact_card(self, image_content: bytes, mime_type: str = "image/jpeg") -> ContactCard:
         try:
             return await asyncio.to_thread(self._extract_sync, image_content, mime_type)
+        except ValueError as ve:
+            # Propagate validation errors (e.g. card invalid, name missing) directly without falling back
+            raise ve
         except Exception as e:
             logger.warning(f"Groq/PaddleOCR extraction failed: {str(e)}. Automatically falling back to GeminiProvider...")
             try:
-                return await self.gemini_fallback.extract_contact_card(image_content, mime_type)
+                return self.gemini_fallback.extract_contact_card(image_content, mime_type)
             except Exception as fe:
                 logger.error(f"Gemini fallback vision extraction also failed: {str(fe)}")
                 raise fe
@@ -226,7 +229,7 @@ class GroqPaddleOCRProvider(AIPublicService):
         )
 
         raw_json = completion.choices[0].message.content.strip()
-        logger.debug(f"Raw Groq JSON response: {raw_json}")
+        logger.info(f"Raw Groq JSON response: {raw_json}")
         
         data = json.loads(raw_json)
         name_val = data.get("name")
