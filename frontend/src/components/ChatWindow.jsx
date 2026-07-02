@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Send, Paperclip, SendHorizontal, HelpCircle, FileSpreadsheet, Sparkles, User, Building, Phone, Mail, FileText, Mic, Square, Home } from "lucide-react";
+import { Send, Paperclip, SendHorizontal, HelpCircle, FileSpreadsheet, Sparkles, User, Building, Phone, Mail, FileText, Mic, Square, Home, Menu, UserCheck } from "lucide-react";
 
 const parseMarkdown = (text) => {
   if (!text) return "";
@@ -40,7 +40,12 @@ export default function ChatWindow({
   onUploadFile,
   onBackToHome,
   sending, 
-  activeSessionId 
+  activeSessionId,
+  onToggleSidebar,
+  onToggleRightPanel,
+  hasActiveContact,
+  mobileSidebarOpen,
+  mobileRightPanelOpen
 }) {
   const [text, setText] = useState("");
   const messagesEndRef = useRef(null);
@@ -203,14 +208,39 @@ export default function ChatWindow({
   return (
     <main className="chat-area">
       <header className="chat-header">
-        <div className="chat-info">
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            <span className="font-display" style={{ fontSize: "1rem", fontWeight: "600" }}>Active Chat Session</span>
-            <span style={{ fontSize: "0.75rem", color: "var(--text-dark)" }}>ID: {activeSessionId}</span>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          {/* Hamburger Menu Toggle for Mobile */}
+          <button 
+            type="button" 
+            className={`icon-btn mobile-menu-btn ${mobileSidebarOpen ? "active" : ""}`}
+            onClick={onToggleSidebar}
+            title="Toggle Sessions List"
+          >
+            <Menu size={20} />
+          </button>
+          
+          <div className="chat-info">
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <span className="font-display chat-title-desktop" style={{ fontSize: "1rem", fontWeight: "600" }}>Active Chat Session</span>
+              <span className="font-display chat-title-mobile" style={{ fontSize: "1rem", fontWeight: "600" }}>Krid Digitizer</span>
+              <span className="chat-subtitle-desktop" style={{ fontSize: "0.75rem", color: "var(--text-dark)" }}>ID: {activeSessionId}</span>
+            </div>
           </div>
         </div>
         
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          {/* Contact Profile Toggle for Mobile */}
+          {hasActiveContact && (
+            <button 
+              type="button" 
+              className={`icon-btn mobile-profile-btn ${mobileRightPanelOpen ? "active" : ""}`}
+              onClick={onToggleRightPanel}
+              title="Toggle Contact Profile"
+            >
+              <UserCheck size={20} />
+            </button>
+          )}
+
           <button 
             type="button"
             className="icon-btn home-btn"
@@ -231,7 +261,7 @@ export default function ChatWindow({
             }}
           >
             <Home size={14} />
-            <span>Home</span>
+            <span className="home-btn-text">Home</span>
           </button>
           
           <div className="status-badge">

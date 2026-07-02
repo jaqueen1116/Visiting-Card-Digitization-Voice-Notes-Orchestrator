@@ -98,9 +98,10 @@ class GoogleSheetsService:
         try:
             creds = self._get_creds()
             import httplib2
+            import google_auth_httplib2
             # Configure Http client transport with unified 30s timeout
             http_client = httplib2.Http(timeout=30.0)
-            authorized_http = creds.authorize(http_client)
+            authorized_http = google_auth_httplib2.AuthorizedHttp(creds, http=http_client)
             self._service = build("sheets", "v4", http=authorized_http, cache_discovery=False)
             return self._service
         except Exception as e:

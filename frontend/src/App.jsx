@@ -18,6 +18,43 @@ export default function App() {
   const [uploading, setUploading] = useState(false);
   const [loadingSessions, setLoadingSessions] = useState(false);
 
+  // Mobile drawers states (only one open at a time)
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [mobileRightPanelOpen, setMobileRightPanelOpen] = useState(false);
+
+  const toggleMobileSidebar = () => {
+    setMobileSidebarOpen((prev) => {
+      const next = !prev;
+      if (next) setMobileRightPanelOpen(false);
+      return next;
+    });
+  };
+
+  const toggleMobileRightPanel = () => {
+    setMobileRightPanelOpen((prev) => {
+      const next = !prev;
+      if (next) setMobileSidebarOpen(false);
+      return next;
+    });
+  };
+
+  const closeAllDrawers = () => {
+    setMobileSidebarOpen(false);
+    setMobileRightPanelOpen(false);
+  };
+
+  // Prevent body scrolling when mobile drawers are visible
+  useEffect(() => {
+    if (mobileSidebarOpen || mobileRightPanelOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileSidebarOpen, mobileRightPanelOpen]);
+
   // 1. Fetch all active sessions on mount
   useEffect(() => {
     fetchSessions();
@@ -43,6 +80,7 @@ export default function App() {
   // 2. Select a session and retrieve message logs history
   const handleSelectSession = async (sessionId) => {
     setActiveSessionId(sessionId);
+    closeAllDrawers();
     try {
       const res = await fetch(`${API_BASE_URL}/api/sessions/${sessionId}/messages`);
       if (res.ok) {
@@ -63,6 +101,7 @@ export default function App() {
         setSessions((prev) => [newSession, ...prev]);
         setActiveSessionId(newSession.session_id);
         setMessages([]);
+        closeAllDrawers();
       } else {
         alert(`Failed to create new session: Server returned status ${res.status}`);
       }
@@ -207,7 +246,12 @@ export default function App() {
         <div className="blob blob-3" />
       </div>
 
-      <div className={`app-container ${activeContact ? "has-right-panel" : "no-right-panel"}`}>
+      {/* Semi-transparent overlay behind active drawers */}
+      {(mobileSidebarOpen || mobileRightPanelOpen) && (
+        <div className="drawer-overlay" onClick={closeAllDrawers} />
+      )}
+
+      <div className={`app-container ${activeContact ? "has-right-panel" : "no-right-panel"} ${mobileSidebarOpen ? "sidebar-open" : ""} ${mobileRightPanelOpen ? "right-panel-open" : ""}`}>
         {/* Sessions sidebar */}
         <SessionSidebar 
           sessions={sessions}
@@ -219,34 +263,39 @@ export default function App() {
           onBackToHome={() => setView("home")}
         />
 
-      {/* Main chat window workspace */}
-      <ChatWindow 
-        messages={messages}
-        onSendMessage={handleSendMessage}
-        onOpenUploader={() => setUploaderOpen(true)}
-        onUploadFile={handleUploadFile}
-        onBackToHome={() => setView("home")}
-        sending={sending}
-        activeSessionId={activeSessionId}
-      />
-
-      {/* Right side contact profile panel */}
-      {activeContact && (
-        <RightPanel 
-          activeContact={activeContact}
+        {/* Main chat window workspace */}
+        <ChatWindow 
           messages={messages}
+          onSendMessage={handleSendMessage}
+          onOpenUploader={() => setUploaderOpen(true)}
+          onUploadFile={handleUploadFile}
+          onBackToHome={() => setView("home")}
+          sending={sending}
+          activeSessionId={activeSessionId}
+          onToggleSidebar={toggleMobileSidebar}
+          onToggleRightPanel={toggleMobileRightPanel}
+          hasActiveContact={!!activeContact}
+          mobileSidebarOpen={mobileSidebarOpen}
+          mobileRightPanelOpen={mobileRightPanelOpen}
         />
-      )}
 
-      {/* Drag & drop file upload modal */}
-      {uploaderOpen && (
-        <Uploader 
-          onClose={() => setUploaderOpen(false)}
-          onUpload={handleUploadFile}
-          uploading={uploading}
-        />
-      )}
-    </div>
+        {/* Right side contact profile panel */}
+        {activeContact && (
+          <RightPanel 
+            activeContact={activeContact}
+            messages={messages}
+          />
+        )}
+
+        {/* Drag & drop file upload modal */}
+        {uploaderOpen && (
+          <Uploader 
+            onClose={() => setUploaderOpen(false)}
+            onUpload={handleUploadFile}
+            uploading={uploading}
+          />
+        )}
+      </div>
     </>
   );
 }
