@@ -26,6 +26,11 @@ class Settings(BaseSettings):
     # Gemini API Configuration
     GEMINI_API_KEY: str = Field(default="")
 
+    # AI Pipeline Provider Configuration (gemini, groq)
+    AI_PROVIDER: str = Field(default="gemini")
+    GROQ_API_KEY: str = Field(default="")
+    GROQ_MODEL: str = Field(default="llama-3.3-70b-versatile")
+
     # Load from .env file if it exists, prioritizing system environment variables
     model_config = SettingsConfigDict(
         env_file=os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), ".env"),

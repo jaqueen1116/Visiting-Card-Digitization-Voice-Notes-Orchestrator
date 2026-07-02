@@ -1,4 +1,3 @@
-from google import genai
 from langchain_core.messages import BaseMessage, AIMessage, HumanMessage
 from langgraph.graph import StateGraph, END
 from app.config import settings, logger
@@ -7,39 +6,9 @@ from app.services.vision import vision_service
 from app.services.speech import speech_service
 from app.services.sheets import sheets_service
 from app.services.whatsapp import whatsapp_service
+from app.services.ai_provider import get_ai_service
 from app.models.contact import ContactCard
 import asyncio
-
-def get_gemini_chat_response(prompt: str, history: list[BaseMessage]) -> str:
-    """
-    Generates a conversational reply using Gemini 2.5 Flash.
-    Converts conversation history into a structured prompt context.
-    """
-    if not settings.GEMINI_API_KEY:
-        return "I am ready to help, but the Gemini API key is not configured for general chat."
-    try:
-        client = genai.Client(api_key=settings.GEMINI_API_KEY)
-        context = ""
-        # Feed last 6 message turns as history context
-        for msg in history[-6:]:
-            role = "User" if msg.type == "human" else "Assistant"
-            context += f"{role}: {msg.content}\n"
-            
-        instruction = (
-            "You are a helpful AI Visiting Card Digitizer and Voice Note Orchestration Assistant. "
-            "You help users manage their contact databases by digitizing business card images and appending voice note transcripts. "
-            "Respond politely, helpfully, and concisely to the user's queries.\n\n"
-        )
-        full_prompt = f"{instruction}{context}User: {prompt}\nAssistant:"
-        
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=full_prompt
-        )
-        return response.text.strip() if response.text else "I couldn't generate a reply."
-    except Exception as e:
-        logger.error(f"Failed to generate conversational chat reply: {str(e)}")
-        return f"Chat assistant error: {str(e)}"
 
 def process_input_node(state: AgentState) -> dict:
     logger.info(f"Agent processing input for session ID: {state['session_id']}")
@@ -246,7 +215,7 @@ async def chat_response_node(state: AgentState) -> dict:
     # General text prompt conversational response
     text_input = state.get("text_input")
     if text_input:
-        reply = await asyncio.to_thread(get_gemini_chat_response, text_input, state["messages"])
+        reply = await get_ai_service().generate_chat_response(text_input, state["messages"])
         return {
             "messages": [AIMessage(content=reply)]
         }
