@@ -19,5 +19,6 @@ class ChatSession(BaseModel):
     """
     session_id: str = Field(..., description="Unique ID for the conversation session")
     last_contact_uuid: Optional[str] = Field(default=None, description="The UUID of the most recently processed contact in this session")
+    contact_name: Optional[str] = Field(default=None, description="The name of the most recently processed contact in this session")
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), description="Creation timestamp")
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), description="Last updated timestamp")

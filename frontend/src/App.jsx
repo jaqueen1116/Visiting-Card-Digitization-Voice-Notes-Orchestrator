@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import SessionSidebar from "./components/SessionSidebar";
 import ChatWindow from "./components/ChatWindow";
 import Uploader from "./components/Uploader";
+import RightPanel from "./components/RightPanel";
 import { API_BASE_URL } from "./config";
 
 export default function App() {
@@ -188,6 +189,9 @@ export default function App() {
     }
   };
 
+  // Scan message logs history dynamically to resolve the active contact metadata
+  const activeContact = [...messages].reverse().find(msg => msg.metadata?.extracted_contact)?.metadata?.extracted_contact;
+
   return (
     <div className="app-container">
       {/* Background ambient animation blobs */}
@@ -215,6 +219,12 @@ export default function App() {
         onUploadFile={handleUploadFile}
         sending={sending}
         activeSessionId={activeSessionId}
+      />
+
+      {/* Right side contact profile panel */}
+      <RightPanel 
+        activeContact={activeContact}
+        messages={messages}
       />
 
       {/* Drag & drop file upload modal */}

@@ -136,46 +136,34 @@ export default function ChatWindow({
     return (
       <div className="contact-card-embed">
         <div className="contact-header-title">
-          <Sparkles size={16} />
-          <span>Digitized Contact Metadata</span>
+          <span>✓ Business Card Processed Successfully</span>
         </div>
         
-        {contact.name && (
-          <div className="contact-row-item">
-            <User size={14} style={{ color: "var(--accent-primary)" }} />
-            <span><strong>Name:</strong> {contact.name}</span>
-          </div>
-        )}
-        
-        {contact.company && (
-          <div className="contact-row-item">
-            <Building size={14} style={{ color: "var(--accent-purple)" }} />
-            <span><strong>Company:</strong> {contact.company}</span>
-          </div>
-        )}
-        
-        {contact.phone && (
-          <div className="contact-row-item">
-            <Phone size={14} style={{ color: "var(--accent-secondary)" }} />
-            <span><strong>Phone:</strong> {contact.phone}</span>
-          </div>
-        )}
-        
-        {contact.email && (
-          <div className="contact-row-item">
-            <Mail size={14} style={{ color: "var(--accent-primary)" }} />
-            <span><strong>Email:</strong> {contact.email}</span>
-          </div>
-        )}
-        
-        {contact.uuid && (
-          <div className="contact-row-item">
-            <FileText size={14} style={{ color: "var(--text-dark)" }} />
-            <span style={{ fontSize: "0.75rem", fontFamily: "monospace" }}>
-              <strong>UUID:</strong> {contact.uuid}
-            </span>
-          </div>
-        )}
+        <div className="contact-details-grid">
+          {contact.name && (
+            <div className="contact-row-item">
+              <span><strong>Name:</strong> {contact.name}</span>
+            </div>
+          )}
+          
+          {contact.company && (
+            <div className="contact-row-item">
+              <span><strong>Company:</strong> {contact.company}</span>
+            </div>
+          )}
+
+          {contact.email && (
+            <div className="contact-row-item">
+              <span><strong>Email:</strong> {contact.email}</span>
+            </div>
+          )}
+          
+          {contact.phone && (
+            <div className="contact-row-item">
+              <span><strong>Phone:</strong> {contact.phone}</span>
+            </div>
+          )}
+        </div>
       </div>
     );
   };
@@ -184,21 +172,25 @@ export default function ChatWindow({
     return (
       <main className="chat-area">
         <div className="welcome-overlay">
-          <h2 className="welcome-title">AI Digitization Hub</h2>
+          <h1 className="welcome-title">Krid Orchestrator</h1>
           <p className="welcome-desc">
-            Orchestrate business card digitization and audio voice notes processing. 
-            Create or select a chat session from the sidebar to begin.
+            A neat, light-mode orchestrator to digitize business cards, transcribe speech notes, dispatch notifications, and manage contacts seamlessly. Create a new chat session to get started.
           </p>
           
           <div className="feature-grid">
-            <div className="feature-box">
-              <Sparkles className="feature-box-icon" size={20} />
-              <p className="feature-box-title">AI Business Card OCR</p>
+            <div className="feature-box lavender-box">
+              <div className="feature-box-icon">
+                <Sparkles size={24} style={{ color: "var(--accent-purple)" }} />
+              </div>
+              <h3 className="feature-box-title">AI Business Card OCR</h3>
               <p className="feature-box-desc">Upload card images to extract contact details using Gemini Flash.</p>
             </div>
-            <div className="feature-box">
-              <FileSpreadsheet className="feature-box-icon" size={20} />
-              <p className="feature-box-title">Google Sheets Sync</p>
+
+            <div className="feature-box peach-box">
+              <div className="feature-box-icon">
+                <FileSpreadsheet size={24} style={{ color: "var(--accent-error)" }} />
+              </div>
+              <h3 className="feature-box-title">Google Sheets Sync</h3>
               <p className="feature-box-desc">Parsed cards are automatically written to a spreadsheet. Checks for duplicates.</p>
             </div>
           </div>
@@ -224,11 +216,45 @@ export default function ChatWindow({
 
       <div className="message-window">
         {messages.length === 0 ? (
-          <div className="welcome-overlay" style={{ padding: "80px 0" }}>
-            <HelpCircle size={32} style={{ color: "var(--text-dark)", marginBottom: "8px" }} />
-            <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>
-              Session initialized. Upload a visiting card image or type a message.
+          <div className="welcome-overlay">
+            <h1 className="welcome-title">Krid Orchestrator</h1>
+            <p className="welcome-desc">
+              A neat, light-mode orchestrator to digitize business cards, transcribe speech notes, dispatch notifications, and manage contacts.
             </p>
+            
+            <div className="feature-grid dashboard-grid">
+              <div className="feature-box upload-box" onClick={onOpenUploader} style={{ cursor: "pointer" }}>
+                <div className="feature-box-icon">
+                  <Paperclip size={24} style={{ color: "var(--accent-primary)" }} />
+                </div>
+                <h3 className="feature-box-title">Upload Business Card</h3>
+                <p className="feature-box-desc">Drag & drop or click to upload business card image</p>
+              </div>
+
+              <div className="feature-box record-box" onClick={startRecording} style={{ cursor: "pointer" }}>
+                <div className="feature-box-icon">
+                  <Mic size={24} style={{ color: "var(--accent-secondary)" }} />
+                </div>
+                <h3 className="feature-box-title">Record Voice Note</h3>
+                <p className="feature-box-desc">Record your voice notes quickly and easily directly in-browser</p>
+              </div>
+
+              <div className="feature-box lavender-box">
+                <div className="feature-box-icon">
+                  <FileText size={24} style={{ color: "var(--accent-purple)" }} />
+                </div>
+                <h3 className="feature-box-title">All in One Place</h3>
+                <p className="feature-box-desc">Manage contacts, notes, and voice notes seamlessly</p>
+              </div>
+
+              <div className="feature-box peach-box">
+                <div className="feature-box-icon">
+                  <Sparkles size={24} style={{ color: "var(--accent-error)" }} />
+                </div>
+                <h3 className="feature-box-title">Stay Organized</h3>
+                <p className="feature-box-desc">Never miss a follow-up with smart notifications</p>
+              </div>
+            </div>
           </div>
         ) : (
           messages.map((msg, index) => {

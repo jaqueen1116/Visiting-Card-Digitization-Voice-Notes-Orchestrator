@@ -108,9 +108,9 @@ async def manage_sheet_node(state: AgentState) -> dict:
                 dup = result["contact"]
                 existing_uuid = dup.get("uuid")
                 
-                # Link active session to duplicate contact UUID in MongoDB
+                # Link active session to duplicate contact UUID and name in MongoDB
                 from app.database.mongo import update_last_contact_uuid
-                await update_last_contact_uuid(session_id, existing_uuid)
+                await update_last_contact_uuid(session_id, existing_uuid, dup.get("name"))
                 
                 msg = (
                     f"⚠️ **Duplicate contact detected!**\n\n"
@@ -136,9 +136,9 @@ async def manage_sheet_node(state: AgentState) -> dict:
                 f"The contact has been successfully added to Google Sheets and is linked to this session."
             )
             
-            # Track UUID in MongoDB session
+            # Track UUID and Name in MongoDB session
             from app.database.mongo import update_last_contact_uuid
-            await update_last_contact_uuid(session_id, contact.uuid)
+            await update_last_contact_uuid(session_id, contact.uuid, contact.name)
             
             return {
                 "status": "inserted",

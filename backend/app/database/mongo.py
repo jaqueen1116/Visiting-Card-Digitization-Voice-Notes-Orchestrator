@@ -132,7 +132,7 @@ async def get_session(session_id: str) -> Optional[ChatSession]:
         logger.error(f"Error fetching session {session_id}: {str(e)}")
         return None
 
-async def update_last_contact_uuid(session_id: str, last_contact_uuid: str) -> bool:
+async def update_last_contact_uuid(session_id: str, last_contact_uuid: str, contact_name: Optional[str] = None) -> bool:
     """
     Updates the session state tracking the latest parsed contact UUID.
     Falls back to local memory if MongoDB is disconnected.
@@ -140,6 +140,8 @@ async def update_last_contact_uuid(session_id: str, last_contact_uuid: str) -> b
     if db_manager.db is None:
         if session_id in IN_MEMORY_SESSIONS:
             IN_MEMORY_SESSIONS[session_id].last_contact_uuid = last_contact_uuid
+            if contact_name:
+                IN_MEMORY_SESSIONS[session_id].contact_name = contact_name
             IN_MEMORY_SESSIONS[session_id].updated_at = datetime.datetime.now(datetime.timezone.utc)
             logger.info(f"[In-Memory] Linked session {session_id} to last_contact_uuid {last_contact_uuid}")
             return True
@@ -147,17 +149,21 @@ async def update_last_contact_uuid(session_id: str, last_contact_uuid: str) -> b
 
     try:
         sessions_col = db_manager.db["chat_sessions"]
+        update_fields = {
+            "last_contact_uuid": last_contact_uuid,
+            "updated_at": datetime.datetime.now(datetime.timezone.utc)
+        }
+        if contact_name:
+            update_fields["contact_name"] = contact_name
+
         result = await sessions_col.update_one(
             {"session_id": session_id},
             {
-                "$set": {
-                    "last_contact_uuid": last_contact_uuid,
-                    "updated_at": datetime.datetime.now(datetime.timezone.utc)
-                }
+                "$set": update_fields
             }
         )
         if result.modified_count > 0:
-            logger.info(f"Linked session {session_id} to last_contact_uuid {last_contact_uuid}")
+            logger.info(f"Linked session {session_id} to last_contact_uuid {last_contact_uuid} (Name: {contact_name})")
             return True
         logger.warning(f"No changes made while updating session {session_id} with last_contact_uuid")
         return False

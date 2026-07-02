@@ -20,7 +20,7 @@ export default function SessionSidebar({
       
       <button className="new-chat-btn" onClick={onCreateSession}>
         <Plus size={18} />
-        <span>New Chat Session</span>
+        <span>New Chat</span>
       </button>
 
       <div className="session-list">
@@ -35,9 +35,21 @@ export default function SessionSidebar({
         ) : (
           sessions.map((session) => {
             const isActive = session.session_id === activeSessionId;
-            const displayTitle = session.last_contact_uuid 
-              ? `Contact: ${session.last_contact_uuid.substring(0, 8)}...`
-              : `Session: ${session.session_id.substring(0, 8)}...`;
+            const contactLetter = session.contact_name 
+              ? session.contact_name.charAt(0).toUpperCase()
+              : "C";
+              
+            const displayTitle = session.contact_name 
+              ? session.contact_name
+              : "New Card Sync";
+              
+            const snippetText = session.last_contact_uuid
+              ? "Business card processed"
+              : "Session initialized...";
+
+            const dateStr = session.updated_at
+              ? new Date(session.updated_at).toLocaleDateString([], { month: "short", day: "numeric" })
+              : "Today";
               
             return (
               <div 
@@ -46,24 +58,42 @@ export default function SessionSidebar({
                 onClick={() => onSelectSession(session.session_id)}
               >
                 <div className="session-title-container">
-                  <MessageSquare size={16} style={{ color: isActive ? "var(--accent-primary)" : "var(--text-dark)", flexShrink: 0 }} />
-                  <span className="session-title">{displayTitle}</span>
+                  <div className={`session-avatar-badge avatar-${contactLetter.toLowerCase()}`}>
+                    {contactLetter}
+                  </div>
+                  <div className="session-text-group">
+                    <span className="session-title">{displayTitle}</span>
+                    <span className="session-snippet">{snippetText}</span>
+                  </div>
                 </div>
                 
-                <button 
-                  className="delete-session-btn"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDeleteSession(session.session_id);
-                  }}
-                  title="Delete Session"
-                >
-                  <Trash2 size={14} />
-                </button>
+                <div className="session-meta-group">
+                  <span className="session-date">{dateStr}</span>
+                  <button 
+                    className="delete-session-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDeleteSession(session.session_id);
+                    }}
+                    title="Delete Session"
+                  >
+                    <Trash2 size={12} />
+                  </button>
+                </div>
               </div>
             );
           })
         )}
+      </div>
+
+      {/* Pro Tip Card at the bottom of the sidebar */}
+      <div className="sidebar-pro-tip">
+        <div className="pro-tip-header">
+          <FolderSync size={20} className="pro-tip-icon" />
+          <h4 className="pro-tip-title">Pro Tip</h4>
+        </div>
+        <p className="pro-tip-desc">Upload clear business card images for best results.</p>
+        <button className="pro-tip-btn">Learn More</button>
       </div>
     </aside>
   );
